@@ -133,7 +133,7 @@ Add an entry to `content/queue.json`:
   "publish_at": "2026-07-15T17:00:00Z",
   "media_type": "IMAGE",
   "media_url": "https://<project>.supabase.co/storage/v1/object/public/media/photo.jpg",
-  "caption": "The one you've been waiting for is finally here. ..."
+  "caption": "confidence is just delusion with better lighting"
 }
 ```
 - `publish_at` is **ISO 8601 in UTC** (the `Z`). 17:00 UTC ≈ 10am PT / 7pm Berlin.
@@ -161,7 +161,7 @@ Rules of the road:
 
 ### Draft captions with Claude
 ```bash
-npm run generate -- "launch week, new product drop, cozy fall vibe" --variants 3
+npm run generate -- "beach day, ex left me on read, unbothered main-character energy" --variants 3
 ```
 Prints 3 caption options. Add `--append` to drop the first into the queue as a draft. Edit `brand.json` to tune the voice — it's the single source of truth for tone, audience, and do's/don'ts.
 
