@@ -14,6 +14,21 @@ Schedule and auto-publish Instagram posts through Instagram's **official** Graph
 
 ---
 
+## Example output
+
+Statement cards rendered by the content factory (`examples/` has more):
+
+<p>
+  <img src="examples/card-01.jpg" width="240" alt="i don't have exes, i have case studies">
+  <img src="examples/card-02.jpg" width="240" alt="confidence is just delusion with better lighting">
+  <img src="examples/card-06.jpg" width="240" alt="i retired at 27. my linkedin just says resting.">
+</p>
+
+The autopilot does the same for your own photos — writing a one-liner in your
+voice and placing it in clear space so it never covers your face.
+
+---
+
 ## Quick start — the whole thing in one folder
 
 Once setup is done (below), your entire job is this:
