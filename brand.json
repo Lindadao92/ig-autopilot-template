@@ -1,0 +1,30 @@
+{
+  "name": "Your Brand",
+  "handle": "@yourhandle",
+  "product": "What you make — e.g. statement caps, one-liners you wear on your head",
+  "tagline": "Your one-line tagline",
+  "font": "Archivo Black",
+  "audience": "Describe who your posts are for: their sense of humor, their vibe, and why they'd follow you. The clearer this is, the better the captions.",
+  "voice": "Describe your caption voice in a sentence or two. e.g. Deadpan and self-aware. A punchline, never a caption. Lowercase. Clever, never corporate — the joke does all the work.",
+  "registers": [
+    "list the recurring themes your jokes hit",
+    "e.g. dating / situationship humor",
+    "e.g. self-aware chaos and delusion",
+    "e.g. money / ambition, twisted"
+  ],
+  "structures": [
+    "reversal",
+    "misdirection",
+    "fake-vulnerable then punch"
+  ],
+  "voice_examples": [
+    "Replace these with 15-40 of your BEST real lines — the model imitates them directly, so this is the most important field.",
+    "Deadpan, standalone one-liners work best.",
+    "Make them sound like a person, not a brand."
+  ],
+  "dont": [
+    "sound like a brand or explain the joke",
+    "be cozy, wholesome, or inspirational",
+    "use hashtags inside the on-image text"
+  ]
+}
