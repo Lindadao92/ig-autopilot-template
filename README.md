@@ -18,16 +18,20 @@ Schedule and auto-publish Instagram posts through Instagram's **official** publi
 
 ## Example output
 
-Statement cards rendered by the content factory (`examples/` has more):
+Real posts from the autopilot: you drop the photo, Claude *looks* at it, writes a
+one-liner in your brand voice, and places the text in clear space so it never
+covers your face.
 
 <p>
-  <img src="examples/card-01.jpg" width="240" alt="i don't have exes, i have case studies">
-  <img src="examples/card-02.jpg" width="240" alt="confidence is just delusion with better lighting">
-  <img src="examples/card-06.jpg" width="240" alt="i retired at 27. my linkedin just says resting.">
+  <img src="examples/example-1.jpg" width="200" alt="my ex texted. the ocean was less interesting so i replied">
+  <img src="examples/example-2.jpg" width="200" alt="i invoice my exes for emotional labor still unpaid">
+  <img src="examples/example-3.jpg" width="200" alt="went all in emotionally once. folded immediately.">
+  <img src="examples/example-4.jpg" width="200" alt="i walk like i own the beach. i own a groupon.">
+  <img src="examples/example-5.jpg" width="200" alt="my ex was a red flag. i promoted him to diversification.">
 </p>
 
-The autopilot does the same for your own photos — writing a one-liner in your
-voice and placing it in clear space so it never covers your face.
+The content factory can also generate text-only statement cards to keep the queue
+full when you're low on photos.
 
 ---
 
