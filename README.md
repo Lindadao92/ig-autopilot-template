@@ -222,6 +222,21 @@ Captions: ≤ 2,200 characters. Instagram does **not** render markdown/bold in c
 
 ---
 
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| **`"Cannot parse access token"`** (OAuthException 190) | You have a Facebook `EAA…` token but the tool defaults to the Instagram Login API | Use an `IGA…` token, **or** set Variable `IG_GRAPH_HOST=https://graph.facebook.com` |
+| **Posts never publish / image fetch fails** | Repo is private, so Instagram can't read the raw image URL | Keep the repo public, or set `MEDIA_BASE_URL` to a public bucket |
+| **Morning briefing is empty** | Hashtag search isn't available on the Instagram Login API | Use a Facebook `EAA…` token + `IG_GRAPH_HOST=https://graph.facebook.com` |
+| **Some photos never get captioned** | Non-JPEG (e.g. HEIC), or file over ~4.5 MB — silently skipped | Convert to JPEG, keep under ~4 MB |
+| **A post went out a few minutes late** | GitHub cron is best-effort, not to-the-minute | Expected — fine for social; don't rely on exact timing |
+| **Schedules stopped firing** | GitHub disables cron after 60 days of repo inactivity | Any commit re-arms it; each publish auto-commits, so active accounts stay awake |
+| **Publishing stopped after ~60 days** | Long-lived token expired | `npm run refresh-token` (or use a non-expiring Meta System User token) |
+| **Caption generation errors** | Bad `ANTHROPIC_API_KEY`, or `ANTHROPIC_MODEL` set to a model your account can't access | Check the key; set `ANTHROPIC_MODEL` to a model you have access to |
+
+---
+
 ## Want a dashboard instead of JSON?
 
 This repo is deliberately minimal (one dependency, files-as-database). If you'd rather have a Next.js + Supabase UI with a calendar, a draft-approval queue, and Vercel Cron doing the scheduling, that's a natural next version — the Graph API client in `src/instagram.js` drops straight in.
