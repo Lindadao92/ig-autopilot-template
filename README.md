@@ -1,12 +1,14 @@
 # ig-autopilot
 
-Schedule and auto-publish Instagram posts through Instagram's **official** Graph API, with captions drafted by Claude — running for free on GitHub Actions. No server, no third-party scheduler, no sketchy browser bots that risk your account.
+Schedule and auto-publish Instagram posts through Instagram's **official** publishing API, with captions drafted by Claude — running for free on GitHub Actions. No server, no third-party scheduler, no sketchy browser bots that risk your account.
+
+> Uses the **Instagram API with Instagram Login** (`graph.instagram.com`, `IGA…` tokens) by default. Have a Facebook Graph API (`EAA…`) token instead? Set `IG_GRAPH_HOST=https://graph.facebook.com`. See [setup](#1-get-your-instagram-credentials-from-meta).
 
 - 🗓️ **Schedule** posts by dropping entries in a JSON queue
 - 📸 **Autopilot** — drop a photo in `media/`, push, and Claude *looks* at it, writes the caption, and schedules it on your cadence
 - 💬 **Auto-replies** to comments on your posts, in brand voice — skips trolls and spam, never invents shipping answers
-- 🔭 **Morning engagement briefing** — finds the best posts in your niche and pre-writes a comment for each; you post them by hand in 10 minutes (human-paced, so zero ban risk)
-- 🎨 **Content factory** — writes fresh one-liners in your voice and renders them as branded statement cards, so the queue never runs dry (and the lines that pop off become your next cap designs)
+- 🔭 **Morning engagement briefing** — finds the best posts in your niche and pre-writes a comment for each; you post them by hand in 10 minutes (human-paced, so zero ban risk). *Requires a Facebook Graph API (`EAA…`) token — see the [scout notes](#morning-engagement-briefing-the-scout).*
+- 🎨 **Content factory** — writes fresh one-liners in your voice and renders them as branded statement cards, so the queue never runs dry (and the lines that pop off double as product research)
 - 🤖 **Draft captions** in your brand voice with the Anthropic API
 - ✅ **Official API only** — the same Content Publishing API that Buffer and Later use, so there's no shadowban risk
 - 💸 **Free** — GitHub Actions runs the cron; you only pay for Claude tokens (fractions of a cent per caption)
@@ -62,9 +64,9 @@ Three hard requirements from Meta — none are optional:
 
 1. **Your account must be a Business account.** Instagram's API only works with professional accounts, and content publishing is safest on **Business** specifically (Creator support for publishing is inconsistent). Convert in the Instagram app: Settings → Account type → Switch to Business. You'll link it to a Facebook Page in the process.
 
-2. **Media must be at a public, direct file URL.** Instagram *fetches* your image/video from a URL — it can't read files from this repo directly. **Google Drive, Dropbox, and iCloud links do NOT work** (they return web pages, not files). Use a **Supabase public Storage bucket** (recommended — free, direct URLs), Cloudinary, or S3.
+2. **Media must be reachable at a public, direct file URL.** Instagram *fetches* your image from a URL. **On a public repo this is automatic** — the autopilot serves your photos straight from the repo's `raw.githubusercontent.com` URLs, with no hosting to set up. You only need external hosting (a **Supabase public bucket**, Cloudinary, or S3) if your repo is **private**, or you hand-write queue entries with relative paths. **Google Drive, Dropbox, and iCloud links do NOT work** (they return web pages, not files).
 
-3. **Claude writes captions, not your photos.** Your hats need real product photos that you supply. The AI handles captions, hashtags, hooks, and scheduling — the words, not the pictures.
+3. **Claude writes captions, not your photos.** You supply the images; the AI handles captions, hashtags, hooks, and scheduling — the words, not the pictures.
 
 **The good news:** because you're only posting to *your own* account, you do **not** need Meta's 2–4 week App Review. That only applies to apps posting on behalf of *other* people. Solo, self-owned automation runs in "development mode" with you as the sole user.
 
@@ -80,13 +82,17 @@ Three hard requirements from Meta — none are optional:
 4. Generate a **long-lived access token** with the `instagram_business_basic` and `instagram_business_content_publish` scopes — and add `instagram_business_manage_comments` if you want the auto-reply agent. (Meta's Graph API Explorer or the app's token tool will do this. Short-lived tokens can be exchanged for long-lived ones that last ~60 days.)
 5. Grab your **Instagram user ID** (numeric) — you can query it from the Graph API Explorer.
 
+> **Which token do I have?** This tool defaults to the **Instagram API with Instagram Login** — tokens start with `IGA…` and hit `graph.instagram.com`. The scopes above produce exactly that. If you instead followed an older tutorial and got a **Facebook Graph API** token (starts with `EAA…`), it will fail with *"Cannot parse access token"* unless you set the repo Variable `IG_GRAPH_HOST=https://graph.facebook.com`. (The hashtag scout needs the `EAA…`/`graph.facebook.com` path — see its section.)
+
 > **Token longevity tip:** long-lived tokens expire in ~60 days. Either run `npm run refresh-token` every ~50 days (and update the secret), or — the low-maintenance path — create a **Meta System User** and issue a **non-expiring** token, then you never touch it again.
 
-### 2. Set up media hosting (Supabase, recommended)
+### 2. (Optional) Media hosting — only for private repos
 
-1. In your Supabase project, create a **public** Storage bucket, e.g. `hats`.
+**If your repo is public, skip this** — the autopilot serves images straight from the repo, no hosting needed. You only need external hosting if your repo is **private**, or you hand-write queue entries with relative paths.
+
+1. In your Supabase project, create a **public** Storage bucket, e.g. `media`.
 2. Upload a photo. Its public URL looks like
-   `https://<project>.supabase.co/storage/v1/object/public/hats/olive.jpg`.
+   `https://<project>.supabase.co/storage/v1/object/public/media/photo.jpg`.
 3. Use that URL as `media_url` in the queue. (Or set `MEDIA_BASE_URL` and use short relative paths.)
 
 ### 3. Configure the repo
@@ -106,7 +112,7 @@ Repo → **Settings** → **Secrets and variables** → **Actions**:
 | `IG_ACCESS_TOKEN` | your long-lived token |
 | `ANTHROPIC_API_KEY` | from console.anthropic.com (only for caption generation) |
 
-Optional **Variables** (not secret): `IG_API_VERSION`, `MEDIA_BASE_URL`, `ANTHROPIC_MODEL`.
+Optional **Variables** (not secret): `IG_API_VERSION`, `MEDIA_BASE_URL`, `ANTHROPIC_MODEL`, and `IG_GRAPH_HOST` (only if you use a Facebook `EAA…` token — set it to `https://graph.facebook.com`).
 
 That's it — the `Publish due Instagram posts` workflow now runs every 30 minutes.
 
@@ -118,12 +124,12 @@ That's it — the `Publish due Instagram posts` workflow now runs every 30 minut
 Add an entry to `content/queue.json`:
 ```json
 {
-  "id": "2026-07-15-corduroy",
+  "id": "2026-07-15-launch",
   "status": "scheduled",
   "publish_at": "2026-07-15T17:00:00Z",
   "media_type": "IMAGE",
-  "media_url": "https://<project>.supabase.co/storage/v1/object/public/hats/olive.jpg",
-  "caption": "The corduroy one is finally here. ..."
+  "media_url": "https://<project>.supabase.co/storage/v1/object/public/media/photo.jpg",
+  "caption": "The one you've been waiting for is finally here. ..."
 }
 ```
 - `publish_at` is **ISO 8601 in UTC** (the `Z`). 17:00 UTC ≈ 10am PT / 7pm Berlin.
@@ -137,11 +143,11 @@ Commit it. Because it's a git commit (or PR), you get a clean review + audit tra
 The laziest workflow, and the best one:
 
 ```bash
-cp ~/Desktop/olive-corduroy.jpg media/
-git add media/ && git commit -m "new hat pics" && git push
+cp ~/Desktop/photo.jpg media/
+git add media/ && git commit -m "new photos" && git push
 ```
 
-On push, a GitHub Action sends each **new** photo to Claude, which *looks at the image* (vision), writes a caption + hashtags + alt text in your `brand.json` voice, and schedules it into the next open slot on your cadence (default **Mon/Wed/Fri at 17:00 UTC** — set `POST_DAYS` and `POST_TIME_UTC` repo Variables to change). The publisher posts it when the time comes. Cost: roughly a cent per caption.
+On push, a GitHub Action sends each **new** photo to Claude, which *looks at the image* (vision), writes a caption + hashtags + alt text in your `brand.json` voice, and schedules it into the next open slot on your cadence (default **daily at 17:00 UTC** — set `POST_DAYS` and `POST_TIME_UTC` repo Variables to change; `POST_TIME_UTC` accepts multiple comma-separated times for several posts a day). The publisher posts it when the time comes. Cost: roughly a cent per caption.
 
 Rules of the road:
 - **JPEG only** (`.jpg`/`.jpeg`) — Instagram's API doesn't accept other image formats. Keep files under ~4 MB.
@@ -151,7 +157,7 @@ Rules of the road:
 
 ### Draft captions with Claude
 ```bash
-npm run generate -- "launch week, new corduroy hat, cozy fall vibe" --variants 3
+npm run generate -- "launch week, new product drop, cozy fall vibe" --variants 3
 ```
 Prints 3 caption options. Add `--append` to drop the first into the queue as a draft. Edit `brand.json` to tune the voice — it's the single source of truth for tone, audience, and do's/don'ts.
 
@@ -172,11 +178,13 @@ Out of the box, nothing waits for a human: the review switches (`AUTOPILOT_REVIE
 
 Every morning at 06:00 UTC the **content factory** checks how many future posts are queued. If it's below target (default 7, tune with `REFILL_TARGET_POSTS`), it asks Claude for fresh one-liners in your `brand.json` voice — checked against every line ever used in `content/lines.json` so it never repeats — renders each as a 1080×1350 statement card (rotating colorways, your handle as watermark), and hands them to the autopilot to caption and schedule. The queue literally cannot run dry.
 
-Your real photos still slot in whenever you drop them in `media/` — the factory only tops up the gap. Watch which generated lines get the most saves and comments: those are your next embroidered caps. The content engine doubles as product research.
+Your real photos still slot in whenever you drop them in `media/` — the factory only tops up the gap. Watch which generated lines get the most saves and comments: those are your next product ideas. The content engine doubles as product research.
 
 Note: card rendering is the repo's one dependency (`sharp`); the refill workflow installs it automatically. All other scripts remain dependency-free.
 
 ### Morning engagement briefing (the scout)
+
+> ⚠️ **Requires a Facebook Graph API token.** Hashtag search (`ig_hashtag_search`) exists **only** on `graph.facebook.com` with an `EAA…` token — it is **not** part of the default Instagram Login API (`IGA…` tokens on `graph.instagram.com`). To use the scout, get an `EAA…` token and set the repo Variable `IG_GRAPH_HOST=https://graph.facebook.com`. With the default `IGA…` token the briefing comes back empty. Publishing and auto-replies work on either token. Don't want the scout? Delete `.github/workflows/scout.yml`.
 
 Every morning at 9am Berlin time, the scout reads the **top posts** under your niche hashtags (Instagram's official, read-only hashtag API), has Claude pick the ~10 best targets, and pre-writes a comment for each in your voice. It commits a briefing to `content/engage/YYYY-MM-DD.md` with links and copy-paste-ready comments.
 
@@ -184,7 +192,7 @@ Then the human part: 10 minutes, from your phone. Open link → post the comment
 
 Why the comments are written the way they are: never salesy, no brand plugs, no links. A genuinely funny comment gets profile taps; a promotional one gets reported. The joke *is* the marketing.
 
-- Set `SCOUT_HASHTAGS` (repo Variable) to your niche, e.g. `nocap,dadhat,datingmemes`. Keep it to ~4–6: Instagram allows 30 *unique* hashtags per rolling week (querying the same ones daily is fine).
+- Set `SCOUT_HASHTAGS` (repo Variable) to your niche, e.g. `datingmemes,relatable,singlelife`. Keep it to ~4–6: Instagram allows 30 *unique* hashtags per rolling week (querying the same ones daily is fine).
 - Targets already suggested are tracked in `content/scouted.json` and never repeated.
 - Don't want it? Delete `.github/workflows/scout.yml`.
 
